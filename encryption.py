@@ -189,3 +189,62 @@ def zikzak_encrypt(text, rows):
     # Satırları birleştir
     return ''.join([''.join(row) for row in zigzag])
 
+def vigenere_encrypt(text, key):
+    """Vigenère şifreleme yöntemi"""
+    clean_text = ''.join(ch.lower() for ch in text if ch.lower() in ALPHABET)
+    clean_key = ''.join(ch.lower() for ch in key if ch.lower() in ALPHABET)
+    
+    if not clean_key:
+        raise ValueError("Geçersiz anahtar - Türkçe harf içermeli")
+    
+    encrypted = []
+    key_len = len(clean_key)
+    
+    for i, char in enumerate(clean_text):
+        text_idx = ALPHABET.index(char)
+        key_idx = ALPHABET.index(clean_key[i % key_len])
+        new_idx = (text_idx + key_idx) % len(ALPHABET)
+        encrypted.append(ALPHABET[new_idx])
+    
+    return ''.join(encrypted)
+
+
+def four_square_encrypt(text, key1, key2, columns):
+    """Özelleştirilmiş Dört Kare şifreleme"""
+    columns = int(columns)
+    if columns <= 0:
+        raise ValueError("Sütun sayısı pozitif olmalıdır")
+    
+    # Alfabe ve anahtarları temizle
+    clean_text = ''.join(ch.lower() for ch in text if ch.lower() in ALPHABET)
+    key1 = ''.join(ch.lower() for ch in key1 if ch.lower() in ALPHABET)
+    key2 = ''.join(ch.lower() for ch in key2 if ch.lower() in ALPHABET)
+    
+    if len(key1) != 29 or len(key2) != 29:
+        raise ValueError("Anahtarlar 29 harflik Türkçe alfabe içermeli")
+    
+    # 4 kare oluştur
+    square1 = ALPHABET  # Standart alfabe
+    square2 = key1       # 1. karıştırılmış alfabe
+    square3 = key2       # 2. karıştırılmış alfabe
+    square4 = ALPHABET  # Alfabenin tersi
+    
+    # Metni sütunlara böl
+    rows = math.ceil(len(clean_text) / columns)
+    padded_text = clean_text.ljust(rows * columns, 'x')  # Eksikleri 'x' ile doldur
+    
+    # Şifreleme
+    encrypted = []
+    for i in range(0, len(padded_text), 2):
+        char1 = padded_text[i]
+        char2 = padded_text[i+1] if i+1 < len(padded_text) else 'x'
+        
+        # Karakterlerin konumlarını bul
+        row1, col1 = divmod(square1.index(char1), 5)  # 5x6 matris (29 harf)
+        row2, col2 = divmod(square3.index(char2), 5)
+        
+        # Yeni karakterleri bul
+        encrypted.append(square2[row1*6 + col2])  # 1. çapraz
+        encrypted.append(square4[row2*6 + col1])  # 2. çapraz
+    
+    return ''.join(encrypted)

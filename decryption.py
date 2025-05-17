@@ -38,3 +38,11 @@ def zikzak_decrypt():
 def vigenere_decrypt():
     decrypted = ""
     return decrypted
+
+def four_square_decrypt():
+    decrypted = ""
+    return decrypted
+
+def hill_decrypt():
+    decrypted = ""
+    return decrypted

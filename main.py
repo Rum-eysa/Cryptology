@@ -1,8 +1,8 @@
 import tkinter as tk
 import random
 from tkinter import ttk
-from encryption import caesar_encrypt,linear_encrypt,substitution_encrypt,permutation_encrypt,numberkey_encrypt,rota_encrypt,zikzak_encrypt,vigenere_encrypt
-from decryption import caesar_decrypt,linear_decrypt,substitution_decrypt,permutation_decrypt,numberkey_decrypt,rota_decrypt,zikzak_decrypt,vigenere_decrypt
+from encryption import caesar_encrypt,linear_encrypt,substitution_encrypt,permutation_encrypt,numberkey_encrypt,rota_encrypt,zikzak_encrypt,vigenere_encrypt,four_square_encrypt
+from decryption import caesar_decrypt,linear_decrypt,substitution_decrypt,permutation_decrypt,numberkey_decrypt,rota_decrypt,zikzak_decrypt,vigenere_decrypt,four_square_decrypt
 
 # Algoritma parametre sözlüğü
 ALGORITHM_PARAMS = {
@@ -14,7 +14,7 @@ ALGORITHM_PARAMS = {
     "Rota": ["Boyut"],
     "ZikZak": ["Satır Sayısı"],
     "Vigenere": ["Anahtar"],
-    "DörtKare": ["Anahtar1", "Anahtar2"],
+    "DörtKare": ["Anahtar1", "Anahtar2", "Sütun Sayısı"],
     "Hill": ["Matris Anahtarı"]
 }
 
@@ -167,6 +167,22 @@ class CryptoApp(tk.Tk):
                     result = vigenere_encrypt(text, key)
                 else:
                     result = vigenere_decrypt(text, key)
+
+            elif method == "DörtKare":
+                key1 = params.get("Anahtar1", "")
+                key2 = params.get("Anahtar2", "")
+                columns = params.get("Sütun Sayısı", "0")
+                
+                if not key1 or not key2:
+                    raise ValueError("İki anahtar da gereklidir")
+                if not columns.isdigit():
+                    raise ValueError("Sütun sayısı pozitif tam sayı olmalıdır")
+                
+                if mode == "encrypt":
+                    result = four_square_encrypt(text, key1, key2, columns)
+                else:
+                    result = four_square_decrypt(text, key1, key2, columns)
+
 
             else:
                 result = f"[UYARI] '{method}' yöntemi henüz uygulanmadı."
