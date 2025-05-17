@@ -3,6 +3,7 @@ import random
 import math
 
 ALPHABET = "abcçdefgğhıijklmnoöprsştuüvyz"
+EXTENDED = "qwx"
 
 def caesar_encrypt(text, shift):
     encrypted = ""
@@ -210,41 +211,30 @@ def vigenere_encrypt(text, key):
 
 
 def four_square_encrypt(text, key1, key2, columns):
-    """Özelleştirilmiş Dört Kare şifreleme"""
     columns = int(columns)
-    if columns <= 0:
-        raise ValueError("Sütun sayısı pozitif olmalıdır")
     
-    # Alfabe ve anahtarları temizle
-    clean_text = ''.join(ch.lower() for ch in text if ch.lower() in ALPHABET)
-    key1 = ''.join(ch.lower() for ch in key1 if ch.lower() in ALPHABET)
-    key2 = ''.join(ch.lower() for ch in key2 if ch.lower() in ALPHABET)
+    key1 = "".join(dict.fromkeys(key1.lower()))  # remove duplicates
+    key2 = "".join(dict.fromkeys(key2.lower()))
     
-    if len(key1) != 29 or len(key2) != 29:
-        raise ValueError("Anahtarlar 29 harflik Türkçe alfabe içermeli")
+    square1 = [c for c in ALPHABET if c not in key1] + list(key1)
+    square2 = [c for c in ALPHABET if c not in key2] + list(key2)
     
-    # 4 kare oluştur
-    square1 = ALPHABET  # Standart alfabe
-    square2 = key1       # 1. karıştırılmış alfabe
-    square3 = key2       # 2. karıştırılmış alfabe
-    square4 = ALPHABET  # Alfabenin tersi
+    result = ""
+    # Girdiyi temizle: boşlukları ve Türk alfabesi dışındaki karakterleri çıkar
+    text = text.lower()
+    text = "".join(c for c in text if c in ALPHABET)
     
-    # Metni sütunlara böl
-    rows = math.ceil(len(clean_text) / columns)
-    padded_text = clean_text.ljust(rows * columns, 'x')  # Eksikleri 'x' ile doldur
-    
-    # Şifreleme
-    encrypted = []
-    for i in range(0, len(padded_text), 2):
-        char1 = padded_text[i]
-        char2 = padded_text[i+1] if i+1 < len(padded_text) else 'x'
-        
-        # Karakterlerin konumlarını bul
-        row1, col1 = divmod(square1.index(char1), 5)  # 5x6 matris (29 harf)
-        row2, col2 = divmod(square3.index(char2), 5)
-        
-        # Yeni karakterleri bul
-        encrypted.append(square2[row1*6 + col2])  # 1. çapraz
-        encrypted.append(square4[row2*6 + col1])  # 2. çapraz
-    
-    return ''.join(encrypted)
+    if len(text) % 2 != 0:
+        text += random.choice(EXTENDED)
+    for i in range(0, len(text), 2):
+        a = text[i]
+        b = text[i+1]
+        if a in ALPHABET and b in ALPHABET:
+            ra, ca = divmod(ALPHABET.index(a), columns)
+            rb, cb = divmod(ALPHABET.index(b), columns)
+            new_a = square1[ra * columns + cb]
+            new_b = square2[rb * columns + ca]
+            result += new_a + new_b
+        else:
+            result += a + b
+    return result
