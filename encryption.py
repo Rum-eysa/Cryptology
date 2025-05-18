@@ -1,58 +1,61 @@
 # encryption.py
 import random 
 import math
+import numpy as np
+from numpy.linalg import inv
+
 
 ALPHABET = "abcçdefgğhıijklmnoöprsştuüvyz"
 EXTENDED = "qwx"
 
 def caesar_encrypt(text, shift):
+
     encrypted = ""
-   
-    for char in text.lower():
-        if char in ALPHABET:
-            idx = (ALPHABET.index(char) + shift) % len(ALPHABET)
-            encrypted += ALPHABET[idx]
-        else:
-            encrypted += char  # boşluk veya noktalama
+    for char in text:
+        lower_char = char.lower()
+        if lower_char in ALPHABET:  # Sadece Türk alfabesindeki karakterleri işle
+            idx = (ALPHABET.index(lower_char) + shift) % len(ALPHABET)
+            new_char = ALPHABET[idx]
+            encrypted += new_char.upper() if char.isupper() else new_char
     return encrypted
 
 def linear_encrypt(text, a, b):
+    
     encrypted = ""
-    m = len(ALPHABET)
+    m = len(ALPHABET)  # 29 (Türk alfabesi)
 
-    # Anahtar doğrulama (a ve m aralarında asal olmalı)
+    # Anahtar doğrulama
     def gcd(x, y):
         while y:
             x, y = y, x % y
         return x
 
     if gcd(a, m) != 1:
-        return "Hata: 'a' ve alfabe uzunluğu (29) aralarında asal olmalı."
+        raise ValueError("'a' parametresi 29 ile aralarında asal olmalıdır")
 
-    for char in text:
+    # Sadece ALPHABET'teki karakterleri işle
+    for char in text.lower():
         if char in ALPHABET:
             x = ALPHABET.index(char)
             encrypted_index = (a * x + b) % m
             encrypted += ALPHABET[encrypted_index]
-        else:
-            encrypted += char  # harf dışı karakterleri olduğu gibi bırak
     return encrypted
 
 
 def substitution_encrypt(text, key_alphabet):
     
+    # Anahtar kontrolü
     if len(key_alphabet) != len(ALPHABET):
-        raise ValueError("Alfabe tam olarak 29 karakterden oluşmalıdır.")
-    encrypted = ""
+        raise ValueError("Anahtar alfabe tam olarak 29 karakterden oluşmalıdır")
     
-    
-    for char in text:
+    # Sadece ALPHABET'teki karakterleri işle
+    encrypted = []
+    for char in text.lower():
         if char in ALPHABET:
             index = ALPHABET.index(char)
-            encrypted += key_alphabet[index]
-        else:
-            encrypted += char  # boşluk, noktalama vs. koru
-    return encrypted
+            encrypted.append(key_alphabet[index])
+    
+    return ''.join(encrypted)
 
 def gcd(a, b):   #BU FONKSİYON DA YER DEĞİŞTİRMEYE DAHİL ASLINDA 
     while b:
@@ -238,3 +241,44 @@ def four_square_encrypt(text, key1, key2, columns):
         else:
             result += a + b
     return result
+
+def hill_encrypt(text, key_matrix_str):
+    """
+    Hill şifreleme algoritması (Türk alfabesi, 29 harf)
+    :param text: Şifrelenecek metin
+    :param key_matrix_str: String formatında matris (örn: "5 8;17 3")
+    :return: Şifrelenmiş metin (BÜYÜK harflerle)
+    """
+    try:
+        # Anahtar matrisini oluştur
+        key_matrix = np.array([[int(x) for x in row.split()] for row in key_matrix_str.strip().split(';')])
+        n = key_matrix.shape[0]
+        
+        # Metni temizle
+        clean_text = ''.join([c for c in text.lower() if c in ALPHABET])
+        
+        # Uzunluk n'in katı değilse padding yap
+        padding_length = (n - len(clean_text) % n) % n
+        if padding_length > 0:
+            clean_text += ''.join(random.choices(ALPHABET, k=padding_length))
+        
+        # Harf → Sayı dönüşüm
+        def char_to_num(c):
+            return ALPHABET.index(c)
+        
+        # Sayı → Harf dönüşüm
+        def num_to_char(num):
+            return ALPHABET[num % len(ALPHABET)]
+        
+        # Şifreleme işlemi
+        encrypted_text = []
+        for i in range(0, len(clean_text), n):
+            block = clean_text[i:i+n]
+            vector = np.array([char_to_num(c) for c in block])
+            encrypted_vector = np.dot(key_matrix, vector) % len(ALPHABET)
+            encrypted_text.extend([num_to_char(num) for num in encrypted_vector])
+        
+        return ''.join(encrypted_text)
+    
+    except Exception as e:
+        raise ValueError(f"Hill şifreleme hatası: {str(e)}")

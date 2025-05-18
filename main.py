@@ -1,8 +1,8 @@
 import tkinter as tk
 import random
 from tkinter import ttk
-from encryption import caesar_encrypt,linear_encrypt,substitution_encrypt,permutation_encrypt,numberkey_encrypt,rota_encrypt,zikzak_encrypt,vigenere_encrypt,four_square_encrypt
-from decryption import caesar_decrypt,linear_decrypt,substitution_decrypt,permutation_decrypt,numberkey_decrypt,rota_decrypt,zikzak_decrypt,vigenere_decrypt,four_square_decrypt
+from encryption import caesar_encrypt,linear_encrypt,substitution_encrypt,permutation_encrypt,numberkey_encrypt,rota_encrypt,zikzak_encrypt,vigenere_encrypt,four_square_encrypt,hill_encrypt
+from decryption import caesar_decrypt,linear_decrypt,substitution_decrypt,permutation_decrypt,numberkey_decrypt,rota_decrypt,zikzak_decrypt,vigenere_decrypt,four_square_decrypt,hill_decrypt
 
 # Algoritma parametre sözlüğü
 ALGORITHM_PARAMS = {
@@ -182,8 +182,26 @@ class CryptoApp(tk.Tk):
                     result = four_square_encrypt(text, key1, key2, columns)
                 else:
                     result = four_square_decrypt(text, key1, key2, columns)
-
-
+            
+            elif method == "Hill":
+                matrix_key = params.get("Matris Anahtarı", "")
+                if not matrix_key:
+                    raise ValueError("Matris anahtarı boş olamaz")
+                
+                try:
+                    # Matris formatını kontrol et (numpy için hazırla)
+                    if ';' not in matrix_key:
+                        # 2x2 matris için alternatif giriş formatı
+                        if len(matrix_key.split()) == 4:
+                            nums = matrix_key.split()
+                            matrix_key = f"{nums[0]} {nums[1]}; {nums[2]} {nums[3]}"
+                        else:
+                            raise ValueError("Geçersiz matris formatı. Örnek: '5 8; 17 3'")
+                    
+                    if mode == "encrypt":
+                        result = hill_encrypt(text, matrix_key)
+                except Exception as e:
+                    result = f"Hata: {str(e)}"
             else:
                 result = f"[UYARI] '{method}' yöntemi henüz uygulanmadı."
 
